@@ -20,7 +20,7 @@ const STARTING_SCREEN_WIDTH: f64 = 640.0;
 const STARTING_SCREEN_HEIGHT: f64 = 480.0;
 const OPENGL_VERSION: OpenGL = OpenGL::V3_2;
 
-const BACKGROUND_SPRITE: &[u8] = include_bytes!(
+static BACKGROUND_SPRITE: &[u8] = include_bytes!(
     concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/resources/test_3.data"
@@ -99,6 +99,7 @@ impl World {
     pub fn run(mut self) {
         use piston::event_loop::{Events, EventSettings};
         use piston::window::{WindowSettings};
+        use std::borrow::Borrow;
         
         let mut window: GlutinWindow = WindowSettings::new(
             "zeldesque",
@@ -114,6 +115,10 @@ impl World {
         let mut gl = GlGraphics::new(OPENGL_VERSION);
 
         let mut events = Events::new(EventSettings::new());
+
+        let bg_texture_rc = self.get_texture(TextureID::Background);
+
+        let bg_texture = bg_texture_rc.borrow();
 
         while let Some(event) = events.next(&mut window) {
             use piston::input::Event::*;
@@ -140,10 +145,9 @@ impl World {
                             gl.draw(args.viewport(), |ctx, gl| {
                                 use graphics::{clear, image};
                                 use self::color::*;
-                                use std::borrow::Borrow;
-                                
+                                                                
                                 clear(with_opacity(WHITE, OPAQUE), gl);
-                                image(self.get_texture(TextureID::Background).borrow(), ctx.transform, gl);
+                                image(bg_texture, ctx.transform, gl);
                             });
                         },
                         _ => ()
