@@ -14,7 +14,7 @@ use self::coordinates::Vec2;
 use opengl_graphics::{GlGraphics, OpenGL, Texture};
 use glutin_window::GlutinWindow;
 
-use std::cell::RefCell;
+use std::rc::{Weak, Rc};
 
 const STARTING_SCREEN_WIDTH: f64 = 640.0;
 const STARTING_SCREEN_HEIGHT: f64 = 480.0;
@@ -31,7 +31,7 @@ const BACKGROUND_SPRITE: &[u8] = include_bytes!(
 pub struct World {
     keyboard: Keyboard,
     window_size: Vec2,
-    background_texture: Option<Texture>,
+    background_texture: Weak<Texture>,
 }
 
 pub enum TextureID {
@@ -40,13 +40,16 @@ pub enum TextureID {
 }
 
 impl World {
-    fn load_texture(&mut self, texture_id: TextureID) {
+    fn load_texture(&mut self, texture_id: TextureID) -> Rc<Texture> {
         use im::ImageBuffer;
         use texture::TextureSettings;
         use self::TextureID::*;
         match texture_id {
             Background => {
-                if let None = self.background_texture {
+                let opt_rc = self.background_texture.upgrade();
+                if let Some(rc) = opt_rc {
+                    rc
+                } else {
                     let background_sprite = ImageBuffer::from_raw(
                         600, 600,
                         BACKGROUND_SPRITE.to_vec()
@@ -56,24 +59,24 @@ impl World {
                         &background_sprite,
                         &TextureSettings::new()
                     );
-                    self.background_texture = Some(background_texture);
+                    let bg_texture = Rc::new(background_texture);
+                    self.background_texture = Rc::downgrade(&bg_texture);
+                    bg_texture
                 }
             },
-            _ => ()
+            _ => panic!("Undefined texture"),
         }
     }
     
-    fn get_texture<'a>(&'a mut self, texture_id: TextureID) -> &'a Texture {
+    fn get_texture<'a>(&'a mut self, texture_id: TextureID) -> Rc<Texture> {
         use self::TextureID::*;
         match texture_id {
             Background => {
-                if let None = self.background_texture {
-                    self.load_texture(Background);
-                }
-                if let Some(ref t) = self.background_texture {
-                    t
+                let opt_rc = self.background_texture.upgrade();
+                if let Some(rc) = opt_rc {
+                    rc
                 } else {
-                    panic!("Background texture not loaded");
+                    self.load_texture(Background)
                 }
             },
             _ => {
@@ -88,7 +91,7 @@ impl World {
 
         World {
             keyboard,
-            background_texture: None,
+            background_texture: Weak::new(),
             window_size: Vec2 { x: STARTING_SCREEN_WIDTH, y: STARTING_SCREEN_HEIGHT },
         }
     }
@@ -137,8 +140,10 @@ impl World {
                             gl.draw(args.viewport(), |ctx, gl| {
                                 use graphics::{clear, image};
                                 use self::color::*;
+                                use std::borrow::Borrow;
+                                
                                 clear(with_opacity(WHITE, OPAQUE), gl);
-                                image(self.get_texture(TextureID::Background), ctx.transform, gl);
+                                image(self.get_texture(TextureID::Background).borrow(), ctx.transform, gl);
                             });
                         },
                         _ => ()
