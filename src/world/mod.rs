@@ -1,9 +1,3 @@
-extern crate piston;
-extern crate glutin_window;
-extern crate opengl_graphics;
-extern crate image as im;
-extern crate texture;
-
 mod keyboard;
 mod coordinates;
 mod color;
@@ -20,8 +14,18 @@ use self::characters::Player;
 
 use opengl_graphics::{GlGraphics, OpenGL, Texture};
 use glutin_window::GlutinWindow;
+use texture::TextureSettings;
+use piston::input::{ButtonArgs, UpdateArgs};
 
 use std::rc::{Weak, Rc};
+
+static MENU_FONT: &[u8] = include_bytes!(
+    concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/resources/font/Megrim.ttf"
+    )
+);
+pub const MENU_FONT_SIZE: u32 = 24;
 
 const STARTING_SCREEN_WIDTH: f64 = 640.0;
 const STARTING_SCREEN_HEIGHT: f64 = 480.0;
@@ -32,6 +36,7 @@ pub struct World {
     window_size: Vec2,
     textures: TextureManager,
     state: State,
+    button_events: Vec<ButtonArgs>,
 }
 
 impl World {
@@ -47,13 +52,34 @@ impl World {
             textures,
             state,
             window_size: Vec2 { x: STARTING_SCREEN_WIDTH, y: STARTING_SCREEN_HEIGHT },
+            button_events: Vec::new(),
         }
     }
+
+    pub fn update_state(&mut self, args: &UpdateArgs) {
+        use self::state::Update;
+        
+        let new_state = match self.state {
+            State::Gameplay(ref mut sc) => sc.update(args, &self.keyboard, &mut self.button_events),
+            State::MainMenu(ref mut menu) => menu.update(args, &self.keyboard, &mut self.button_events),
+            State::PreInit => {
+                use self::state::menu::Menu;
+                Some(State::MainMenu(Menu::new(MENU_FONT_SIZE)))
+            },
+            _ => panic!("Bad state!"),
+        };
+        if let Some(state) = new_state {
+            self.state = state;
+        }
+    }
+            
 
     pub fn run(mut self) {
         use piston::event_loop::{Events, EventSettings};
         use piston::window::{WindowSettings};
         use std::borrow::Borrow;
+        use opengl_graphics::glyph_cache::GlyphCache;
+        use rusttype::FontCollection;
         
         let mut window: GlutinWindow = WindowSettings::new(
             "zeldesque",
@@ -70,6 +96,12 @@ impl World {
 
         let mut events = Events::new(EventSettings::new());
 
+        let mut menu_font = GlyphCache::from_bytes(
+            MENU_FONT,
+            TextureSettings::new()
+        ).unwrap();
+        menu_font.preload_printable_ascii(MENU_FONT_SIZE);
+
         while let Some(event) = events.next(&mut window) {
             use piston::input::Event::*;
 
@@ -83,33 +115,8 @@ impl World {
 
                     match input {
                         Button(args) => {
-                            match args.button {
-                                Keyboard(W) => {
-                                    match args.state {
-                                        Release => self.keyboard.w = false,
-                                        Press => self.keyboard.w = true,
-                                    }
-                                },
-                                Keyboard(A) => {
-                                    match args.state {
-                                        Release => self.keyboard.a = false,
-                                        Press => self.keyboard.a = true,
-                                    }
-                                },
-                                Keyboard(S) => {
-                                    match args.state {
-                                        Relese => self.keyboard.s = false,
-                                        Press => self.keyboard.s = true,
-                                    }
-                                },
-                                Keyboard(D) => {
-                                    match args.state {
-                                        Release => self.keyboard.d = false,
-                                        Press => self.keyboard.d = true,
-                                    }
-                                },
-                                _ => (),
-                            }
+                            self.keyboard.handle_keypress(&args);
+                            self.button_events.push(args);
                         },
                         _ => ()
                     }
@@ -117,38 +124,21 @@ impl World {
                 Loop(loop_type) => {
                     use piston::input::Loop::*;
                     match loop_type {
-                        Update(args) => {
-                            match self.state {
-                                State::PreInit => {
-                                    let scene = Scene {
-                                        pos: MapCoord { x: 0, y:0 },
-                                        background: self.textures.get(TextureID::Background),
-                                        player: Player {
-                                            sprite: self.textures.get(TextureID::PlayerSprite),
-                                            pos: Vec2 { x: 64.0, y: 64.0 },
-                                            dimensions: Vec2 { x: 128.0, y: 128.0 },
-                                            angle: 0.0,
-                                        },
-                                    };
-                                    self.state = State::Gameplay(scene);
-                                },
-                                State::Gameplay(ref mut scene) => scene.update(&args, &self.keyboard),
-                            }
-                        },
+                        Update(args) => self.update_state(&args),
                         Render(args) => {
                             gl.draw(args.viewport(), |ctx, gl| {
                                 use graphics::{clear, image};
-                                use self::color::*;
+                                use world::color::*;
 
-                                if let State::Gameplay(ref mut sc) = self.state {
-                                    sc.draw(
-                                        gl,
-                                        ctx.transform
-                                    );
+                                clear(with_opacity(BLACK, OPAQUE), gl);
+                                match self.state {
+                                    State::Gameplay(ref mut sc) => sc.draw(gl, ctx.transform),
+                                    State::MainMenu(ref mut menu) => menu.draw(&mut menu_font, gl, ctx.transform),
+                                    _ => (),
                                 }
                             });
                         },
-                        _ => ()
+                        _ => (),
                     }
                 },
                 _ => ()

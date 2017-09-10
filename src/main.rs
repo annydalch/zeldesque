@@ -4,6 +4,7 @@ extern crate opengl_graphics;
 extern crate image as im;
 extern crate texture;
 extern crate graphics;
+extern crate rusttype;
 
 mod world;
 
