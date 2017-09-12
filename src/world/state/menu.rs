@@ -12,6 +12,7 @@ use super::{Update, State};
 const MENU_SEPERATION: f64 = 40.0;
 const MENU_MARGINS: (f64, f64) = (100.0, 100.0);
 
+#[derive(Copy, Clone, Debug)]
 pub enum MenuEntry {
     NewGame,
     Quit,
@@ -21,6 +22,15 @@ pub struct Menu {
     entries: Vec<MenuEntry>,
     pos: usize,
     size: u32,
+}
+
+fn get_text_from_menu_entry(entry: &MenuEntry) -> &str {
+    use self::MenuEntry::*;
+    match *entry {
+        NewGame => "New Game",
+        Quit => "Quit",
+        _ => panic!("Bad menu entry!"),
+    }
 }
 
 impl Menu {
@@ -44,9 +54,9 @@ impl Menu {
         for (ct, entry) in self.entries.iter().enumerate() {
             transform = transform.trans(0.0, MENU_SEPERATION);
             if ct == self.pos {
-            text(with_opacity(WHITE, OPAQUE), self.size, "sick, brah", font, transform, gl);
+            text(with_opacity(WHITE, OPAQUE), self.size, get_text_from_menu_entry(entry), font, transform, gl);
             } else {
-                text(with_opacity(BLUE, OPAQUE), self.size, "sick, brah", font, transform, gl);
+                text(with_opacity(BLUE, OPAQUE), self.size, get_text_from_menu_entry(entry), font, transform, gl);
             }
         }
     }
