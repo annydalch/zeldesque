@@ -24,8 +24,8 @@ impl Keyboard {
     pub fn handle_keypress(&mut self, args: &ButtonArgs) {
         if let Keyboard(key) = args.button {
             match args.state {
-                Release => self.key_pressed(key),
-                Press => self.key_released(key),
+                Release => self.key_released(key),
+                Press => self.key_pressed(key),
             }
         }
     }

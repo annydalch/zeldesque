@@ -1,7 +1,10 @@
 use opengl_graphics::glyph_cache::GlyphCache;
 use opengl_graphics::GlGraphics;
-use piston::input::{UpdateArgs, ButtonArgs};
+use piston::input::{UpdateArgs, ButtonArgs, Key};
 use graphics::math::Matrix2d;
+use piston::input::Key::*;
+use piston::input::Button::*;
+use piston::input::ButtonState::*;
 
 use world::keyboard::Keyboard;
 use super::{Update, State};
@@ -25,7 +28,7 @@ impl Menu {
         use self::MenuEntry::*;
 
         Menu {
-            entries: vec![NewGame, Quit],
+            entries: vec![NewGame, Quit, Quit],
             pos: 0,
             size,
          }
@@ -40,7 +43,33 @@ impl Menu {
 
         for (ct, entry) in self.entries.iter().enumerate() {
             transform = transform.trans(0.0, MENU_SEPERATION);
+            if ct == self.pos {
             text(with_opacity(WHITE, OPAQUE), self.size, "sick, brah", font, transform, gl);
+            } else {
+                text(with_opacity(BLUE, OPAQUE), self.size, "sick, brah", font, transform, gl);
+            }
+        }
+    }
+    fn key_pressed(&mut self, key: Key) {
+        match key {
+            W => if self.pos == 0 {
+                self.pos = self.entries.len() - 1;
+            } else {
+                self.pos -= 1;
+            },
+            S => if self.pos == self.entries.len() - 1 {
+                self.pos = 0;
+            } else {
+                self.pos += 1;
+            },
+            _ => (),
+        }
+    }
+    fn key_released(&mut self, key: Key) {
+        match key {
+            W => (),
+            S => (),
+            _ => (),
         }
     }
 }
@@ -52,6 +81,16 @@ impl Update for Menu {
         keyboard: &Keyboard,
         events: &mut Vec<ButtonArgs>
     ) -> Option<State> {
+        
+        
+        for event in events.drain(..) {
+            if let Keyboard(key) = event.button {
+                match event.state {
+                    Release => self.key_released(key),
+                    Press => self.key_pressed(key),
+                }
+            }
+        }
         None
     }
 }
