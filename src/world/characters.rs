@@ -10,6 +10,8 @@ pub struct Player {
     pub sprite: Rc<Texture>,
     pub pos: Vec2,
     pub dimensions: Vec2,
+    pub vel: Vec2,
+    pub speed: f64,
 }
 
 impl Player {
@@ -23,6 +25,15 @@ impl Player {
             .trans(self.dimensions.x / -2.0, self.dimensions.y / -2.0);
 
         image(self.sprite.borrow(), my_trans, gl);
+    }
+
+    pub fn adjust_speed(&self) -> Vec2 {
+        use std::f64::consts::SQRT_2;
+        let speed: f64 = self.speed * SQRT_2 / 2.0;
+        Vec2 {
+            x: speed,
+            y: speed,
+        }
     }
 
     pub fn new(sprite: Rc<Texture>, pos: Vec2) -> Self {
@@ -42,8 +53,8 @@ impl Player {
             sprite,
             pos,
             dimensions,
+            vel: Vec2 { x: 0.0, y: 0.0 },
+            speed: 30.0
         }
     }
-
-    pub fn update(&mut self, _: &UpdateArgs, _: &Keyboard) {}
 }

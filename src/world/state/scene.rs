@@ -34,6 +34,49 @@ impl Scene {
             pos: MapCoord { x: 0, y: 0 },
         }
     }
+
+    fn move_player(&mut self, dt: f64) {
+        let player = &mut self.player;
+        player.pos += player.vel * dt;
+    }
+
+    fn adjust_player_vel(&mut self, keys: &Keyboard) {
+        if keys.w && keys.a && (!keys.s) && (!keys.d) {
+            // up and left
+            self.player.vel = self.player.adjust_speed() * (-1.0, -1.0);
+        } else if (!keys.w) && keys.a && keys.s && (!keys.d) {
+            // down and left
+            self.player.vel = self.player.adjust_speed() * (-1.0, 1.0);
+            
+        } else if (!keys.w) && (!keys.a) && keys.s && keys.d {
+            // down and right
+            self.player.vel = self.player.adjust_speed();
+            
+        } else if keys.w && (!keys.a) && (!keys.s) && keys.d {
+            // up and right
+            self.player.vel = self.player.adjust_speed() * (1.0, -1.0);
+            
+        } else if keys.w && (!keys.s) {
+            // up
+            self.player.vel = Vec2 { x: 0.0, y: self.player.speed * -1.0 };
+            
+        } else if keys.a && (!keys.d) {
+            // left
+            self.player.vel = Vec2 { x: self.player.speed * -1.0, y: 0.0 };
+            
+        } else if keys.s && (!keys.w) {
+            // down
+            self.player.vel = Vec2 { x: 0.0, y: self.player.speed };
+            
+        } else if keys.d && (!keys.a) {
+            // right
+            self.player.vel = Vec2 { x: self.player.speed, y: 0.0 };
+            
+        } else {
+            // neutral
+            self.player.vel = Vec2 { x: 0.0, y: 0.0 };
+        }
+    }
 }
 
 impl Update for Scene {
@@ -55,6 +98,8 @@ impl Update for Scene {
                 return Some(StateChangeRequest::MainMenu);
             }
         }
+        self.adjust_player_vel(keyboard);
+        self.move_player(args.dt);
         None
     }
 }
