@@ -17,7 +17,8 @@ impl Player {
         use graphics::{image, Transformed};
         use std::borrow::Borrow;
 
-        let my_trans = transform.clone()
+        let my_trans = transform
+            .clone()
             .trans(self.pos.x, self.pos.y)
             .trans(self.dimensions.x / -2.0, self.dimensions.y / -2.0);
 
@@ -27,11 +28,14 @@ impl Player {
     pub fn new(sprite: Rc<Texture>, pos: Vec2) -> Self {
         use texture::ImageSize;
         use std::borrow::Borrow;
-        
+
         let dimensions = {
             let texture: &Texture = sprite.borrow();
             let (width, height): (u32, u32) = texture.get_size();
-            Vec2 { x: width as _, y: height as _ }
+            Vec2 {
+                x: width as _,
+                y: height as _,
+            }
         };
 
         Player {
@@ -40,7 +44,6 @@ impl Player {
             dimensions,
         }
     }
-    
-    pub fn update(&mut self, _: &UpdateArgs, _: &Keyboard) {
-    }
+
+    pub fn update(&mut self, _: &UpdateArgs, _: &Keyboard) {}
 }

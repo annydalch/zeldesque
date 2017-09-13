@@ -1,5 +1,6 @@
-extern crate opengl_graphics;
+
 extern crate image as im;
+extern crate opengl_graphics;
 extern crate texture;
 
 mod texture_info;
@@ -8,20 +9,16 @@ use std::rc::Rc;
 use opengl_graphics::Texture;
 use self::texture_info::TextureInfo;
 
-static BACKGROUND_SPRITE: &[u8] = include_bytes!(
-    concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/resources/test_3.data"
-    )
-);
+static BACKGROUND_SPRITE: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/resources/test_3.data"
+));
 // To export these files from GIMP, Export As => .data, select RGBX
 
-static PLAYER_SPRITE: &[u8] = include_bytes!(
-    concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/resources/test_pc.data"
-    )
-);
+static PLAYER_SPRITE: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/resources/test_pc.data"
+));
 
 #[derive(Copy, Clone, Debug)]
 pub enum TextureID {

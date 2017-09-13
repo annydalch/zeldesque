@@ -4,7 +4,7 @@ pub mod menu;
 use self::scene::Scene;
 use self::menu::Menu;
 use world::keyboard::Keyboard;
-use piston::input::{UpdateArgs, ButtonArgs};
+use piston::input::{ButtonArgs, UpdateArgs};
 
 pub enum State {
     Gameplay(Scene),
@@ -24,6 +24,6 @@ pub trait Update {
         &mut self,
         args: &UpdateArgs,
         keyboard: &Keyboard,
-        events: &mut Vec<ButtonArgs>
+        events: &mut Vec<ButtonArgs>,
     ) -> Option<StateChangeRequest>;
 }

@@ -1,10 +1,11 @@
-extern crate piston;
+
 extern crate glutin_window;
-extern crate opengl_graphics;
-extern crate image as im;
-extern crate texture;
 extern crate graphics;
+extern crate image as im;
+extern crate opengl_graphics;
+extern crate piston;
 extern crate rusttype;
+extern crate texture;
 
 mod world;
 

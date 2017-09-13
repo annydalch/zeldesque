@@ -1,13 +1,13 @@
 use opengl_graphics::glyph_cache::GlyphCache;
 use opengl_graphics::GlGraphics;
-use piston::input::{UpdateArgs, ButtonArgs, Key};
+use piston::input::{ButtonArgs, Key, UpdateArgs};
 use graphics::math::Matrix2d;
 use piston::input::Key::*;
 use piston::input::Button::*;
 use piston::input::ButtonState::*;
 
 use world::keyboard::Keyboard;
-use super::{Update, StateChangeRequest};
+use super::{StateChangeRequest, Update};
 
 const MENU_SEPERATION: f64 = 40.0;
 const MENU_MARGINS: (f64, f64) = (100.0, 100.0);
@@ -56,17 +56,31 @@ impl Menu {
         for (ct, entry) in self.entries.iter().enumerate() {
             transform = transform.trans(0.0, MENU_SEPERATION);
             if ct == self.pos {
-                text(with_opacity(WHITE, OPAQUE), self.size, get_text_from_menu_entry(entry), font, transform, gl);
+                text(
+                    with_opacity(WHITE, OPAQUE),
+                    self.size,
+                    get_text_from_menu_entry(entry),
+                    font,
+                    transform,
+                    gl,
+                );
             } else {
-                text(with_opacity(BLUE, OPAQUE), self.size, get_text_from_menu_entry(entry), font, transform, gl);
+                text(
+                    with_opacity(BLUE, OPAQUE),
+                    self.size,
+                    get_text_from_menu_entry(entry),
+                    font,
+                    transform,
+                    gl,
+                );
             }
         }
     }
-    
+
     fn activate_menu_option(&self) -> StateChangeRequest {
         let selected_option = self.entries[self.pos];
         use self::MenuEntry::*;
-        
+
         match selected_option {
             NewGame => StateChangeRequest::NewGame,
             LoadGame => StateChangeRequest::LoadGame,
@@ -74,12 +88,10 @@ impl Menu {
             _ => panic!("invalid menu option"),
         }
     }
-    
+
     fn key_pressed(&mut self, key: Key) -> Option<StateChangeRequest> {
         match key {
-            Return => {
-                Some(self.activate_menu_option())
-            },
+            Return => Some(self.activate_menu_option()),
             W | Up => {
                 if self.pos == 0 {
                     self.pos = self.entries.len() - 1;
@@ -87,7 +99,7 @@ impl Menu {
                     self.pos -= 1;
                 }
                 None
-            },
+            }
             S | Down => {
                 if self.pos == self.entries.len() - 1 {
                     self.pos = 0;
@@ -95,7 +107,7 @@ impl Menu {
                     self.pos += 1;
                 }
                 None
-            },
+            }
             _ => None,
         }
     }
@@ -106,7 +118,7 @@ impl Update for Menu {
         &mut self,
         _: &UpdateArgs,
         _: &Keyboard,
-        events: &mut Vec<ButtonArgs>
+        events: &mut Vec<ButtonArgs>,
     ) -> Option<StateChangeRequest> {
         for event in events.drain(..) {
             if let Keyboard(key) = event.button {

@@ -16,12 +16,10 @@ use glutin_window::GlutinWindow;
 use texture::TextureSettings;
 use piston::input::{ButtonArgs, UpdateArgs};
 
-static MENU_FONT: &[u8] = include_bytes!(
-    concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/resources/font/Megrim.ttf"
-    )
-);
+static MENU_FONT: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/resources/font/Megrim.ttf"
+));
 pub const MENU_FONT_SIZE: u32 = 24;
 
 const STARTING_SCREEN_WIDTH: f64 = 640.0;
@@ -46,7 +44,10 @@ impl World {
             keyboard,
             textures,
             state,
-            window_size: Vec2 { x: STARTING_SCREEN_WIDTH, y: STARTING_SCREEN_HEIGHT },
+            window_size: Vec2 {
+                x: STARTING_SCREEN_WIDTH,
+                y: STARTING_SCREEN_HEIGHT,
+            },
             button_events: Vec::new(),
         }
     }
@@ -56,14 +57,16 @@ impl World {
         use self::state::StateChangeRequest;
         use self::state::menu::Menu;
         use self::state::scene::Scene;
-        
+
         let state_request = match self.state {
             State::Gameplay(ref mut sc) => sc.update(args, &self.keyboard, &mut self.button_events),
-            State::MainMenu(ref mut menu) => menu.update(args, &self.keyboard, &mut self.button_events),
+            State::MainMenu(ref mut menu) => {
+                menu.update(args, &self.keyboard, &mut self.button_events)
+            }
             State::PreInit => Some(StateChangeRequest::MainMenu),
             _ => panic!("Bad state!"),
         };
-        
+
         if let Some(target_state) = state_request {
             self.state = match target_state {
                 StateChangeRequest::NewGame => State::Gameplay(Scene::new(&mut self.textures)),
@@ -74,18 +77,17 @@ impl World {
             }
         }
     }
-            
+
 
     pub fn run(mut self) {
-        use piston::event_loop::{Events, EventSettings};
-        use piston::window::{WindowSettings};
+        use piston::event_loop::{EventSettings, Events};
+        use piston::window::WindowSettings;
         use opengl_graphics::glyph_cache::GlyphCache;
-        
+
         let mut window: GlutinWindow = WindowSettings::new(
             "zeldesque",
-            (STARTING_SCREEN_WIDTH as _, STARTING_SCREEN_HEIGHT as _)
-        )
-            .vsync(true)
+            (STARTING_SCREEN_WIDTH as _, STARTING_SCREEN_HEIGHT as _),
+        ).vsync(true)
             .resizable(false)
             .opengl(OPENGL_VERSION)
             .build()
@@ -95,10 +97,7 @@ impl World {
 
         let mut events = Events::new(EventSettings::new());
 
-        let mut menu_font = GlyphCache::from_bytes(
-            MENU_FONT,
-            TextureSettings::new()
-        ).unwrap();
+        let mut menu_font = GlyphCache::from_bytes(MENU_FONT, TextureSettings::new()).unwrap();
         menu_font.preload_printable_ascii(MENU_FONT_SIZE);
 
         while let Some(event) = events.next(&mut window) {
@@ -112,10 +111,10 @@ impl World {
                         Button(args) => {
                             self.keyboard.handle_keypress(&args);
                             self.button_events.push(args);
-                        },
-                        _ => ()
+                        }
+                        _ => (),
                     }
-                },
+                }
                 Loop(loop_type) => {
                     use piston::input::Loop::*;
                     match loop_type {
@@ -128,15 +127,17 @@ impl World {
                                 clear(with_opacity(BLACK, OPAQUE), gl);
                                 match self.state {
                                     State::Gameplay(ref mut sc) => sc.draw(gl, ctx.transform),
-                                    State::MainMenu(ref mut menu) => menu.draw(&mut menu_font, gl, ctx.transform),
+                                    State::MainMenu(ref mut menu) => {
+                                        menu.draw(&mut menu_font, gl, ctx.transform)
+                                    }
                                     _ => (),
                                 }
                             });
-                        },
+                        }
                         _ => (),
                     }
-                },
-                _ => ()
+                }
+                _ => (),
             }
         }
     }

@@ -1,8 +1,9 @@
-extern crate opengl_graphics;
+
 extern crate image as im;
+extern crate opengl_graphics;
 extern crate texture;
 
-use std::rc::{Weak, Rc};
+use std::rc::{Rc, Weak};
 use std::path::Path;
 use opengl_graphics::Texture;
 
@@ -56,20 +57,14 @@ impl TextureInfo {
         match self.storage {
             FileStorage(_) => {
                 panic!("I haven't implemented that yet!");
-            },
+            }
             Inline(data) => {
-                let img = ImageBuffer::from_raw(
-                    self.width, self.height,
-                    data.to_vec()
-                ).unwrap();
-                let tex = Texture::from_image(
-                    &img,
-                    &TextureSettings::new()
-                );
+                let img = ImageBuffer::from_raw(self.width, self.height, data.to_vec()).unwrap();
+                let tex = Texture::from_image(&img, &TextureSettings::new());
                 let rc_tex = Rc::new(tex);
                 self.weak_ref = Rc::downgrade(&rc_tex);
                 rc_tex
-            },
+            }
         }
     }
 }
