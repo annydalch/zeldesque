@@ -7,7 +7,7 @@ use piston::input::Button::*;
 use piston::input::ButtonState::*;
 
 use world::keyboard::Keyboard;
-use super::{Update, State};
+use super::{Update, StateChangeRequest};
 
 const MENU_SEPERATION: f64 = 40.0;
 const MENU_MARGINS: (f64, f64) = (100.0, 100.0);
@@ -15,6 +15,7 @@ const MENU_MARGINS: (f64, f64) = (100.0, 100.0);
 #[derive(Copy, Clone, Debug)]
 pub enum MenuEntry {
     NewGame,
+    LoadGame,
     Quit,
 }
 
@@ -28,6 +29,7 @@ fn get_text_from_menu_entry(entry: &MenuEntry) -> &str {
     use self::MenuEntry::*;
     match *entry {
         NewGame => "New Game",
+        LoadGame => "Load Game",
         Quit => "Quit",
         _ => panic!("Bad menu entry!"),
     }
@@ -38,10 +40,10 @@ impl Menu {
         use self::MenuEntry::*;
 
         Menu {
-            entries: vec![NewGame, Quit, Quit],
+            entries: vec![NewGame, LoadGame, Quit],
             pos: 0,
             size,
-         }
+        }
     }
 
     pub fn draw(&self, font: &mut GlyphCache, gl: &mut GlGraphics, mut transform: Matrix2d) {
@@ -54,32 +56,47 @@ impl Menu {
         for (ct, entry) in self.entries.iter().enumerate() {
             transform = transform.trans(0.0, MENU_SEPERATION);
             if ct == self.pos {
-            text(with_opacity(WHITE, OPAQUE), self.size, get_text_from_menu_entry(entry), font, transform, gl);
+                text(with_opacity(WHITE, OPAQUE), self.size, get_text_from_menu_entry(entry), font, transform, gl);
             } else {
                 text(with_opacity(BLUE, OPAQUE), self.size, get_text_from_menu_entry(entry), font, transform, gl);
             }
         }
     }
-    fn key_pressed(&mut self, key: Key) {
-        match key {
-            W => if self.pos == 0 {
-                self.pos = self.entries.len() - 1;
-            } else {
-                self.pos -= 1;
-            },
-            S => if self.pos == self.entries.len() - 1 {
-                self.pos = 0;
-            } else {
-                self.pos += 1;
-            },
-            _ => (),
+    
+    fn activate_menu_option(&self) -> StateChangeRequest {
+        let selected_option = self.entries[self.pos];
+        use self::MenuEntry::*;
+        
+        match selected_option {
+            NewGame => StateChangeRequest::NewGame,
+            LoadGame => StateChangeRequest::LoadGame,
+            Quit => StateChangeRequest::Quit,
+            _ => panic!("invalid menu option"),
         }
     }
-    fn key_released(&mut self, key: Key) {
+    
+    fn key_pressed(&mut self, key: Key) -> Option<StateChangeRequest> {
         match key {
-            W => (),
-            S => (),
-            _ => (),
+            Return => {
+                Some(self.activate_menu_option())
+            },
+            W | Up => {
+                if self.pos == 0 {
+                    self.pos = self.entries.len() - 1;
+                } else {
+                    self.pos -= 1;
+                }
+                None
+            },
+            S | Down => {
+                if self.pos == self.entries.len() - 1 {
+                    self.pos = 0;
+                } else {
+                    self.pos += 1;
+                }
+                None
+            },
+            _ => None,
         }
     }
 }
@@ -87,17 +104,17 @@ impl Menu {
 impl Update for Menu {
     fn update(
         &mut self,
-        args: &UpdateArgs,
-        keyboard: &Keyboard,
+        _: &UpdateArgs,
+        _: &Keyboard,
         events: &mut Vec<ButtonArgs>
-    ) -> Option<State> {
-        
-        
+    ) -> Option<StateChangeRequest> {
         for event in events.drain(..) {
             if let Keyboard(key) = event.button {
                 match event.state {
-                    Release => self.key_released(key),
-                    Press => self.key_pressed(key),
+                    Press => if let Some(s) = self.key_pressed(key) {
+                        return Some(s);
+                    },
+                    _ => (),
                 }
             }
         }

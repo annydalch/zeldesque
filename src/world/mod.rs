@@ -6,18 +6,15 @@ mod state;
 mod characters;
 
 use self::state::State;
-use self::state::scene::Scene;
 use self::keyboard::Keyboard;
-use self::coordinates::{Vec2, MapCoord};
-use self::asset_manager::{TextureID, TextureManager};
+use self::coordinates::Vec2;
+use self::asset_manager::TextureManager;
 use self::characters::Player;
 
-use opengl_graphics::{GlGraphics, OpenGL, Texture};
+use opengl_graphics::{GlGraphics, OpenGL};
 use glutin_window::GlutinWindow;
 use texture::TextureSettings;
 use piston::input::{ButtonArgs, UpdateArgs};
-
-use std::rc::{Weak, Rc};
 
 static MENU_FONT: &[u8] = include_bytes!(
     concat!(
@@ -41,10 +38,8 @@ pub struct World {
 
 impl World {
     pub fn new() -> Self {
-        use std::borrow::Borrow;
-        
         let keyboard: Keyboard = Keyboard::new();
-        let mut textures = TextureManager::new();
+        let textures = TextureManager::new();
 
         let state = State::PreInit;
         World {
@@ -58,18 +53,25 @@ impl World {
 
     pub fn update_state(&mut self, args: &UpdateArgs) {
         use self::state::Update;
+        use self::state::StateChangeRequest;
+        use self::state::menu::Menu;
+        use self::state::scene::Scene;
         
-        let new_state = match self.state {
+        let state_request = match self.state {
             State::Gameplay(ref mut sc) => sc.update(args, &self.keyboard, &mut self.button_events),
             State::MainMenu(ref mut menu) => menu.update(args, &self.keyboard, &mut self.button_events),
-            State::PreInit => {
-                use self::state::menu::Menu;
-                Some(State::MainMenu(Menu::new(MENU_FONT_SIZE)))
-            },
+            State::PreInit => Some(StateChangeRequest::MainMenu),
             _ => panic!("Bad state!"),
         };
-        if let Some(state) = new_state {
-            self.state = state;
+        
+        if let Some(target_state) = state_request {
+            self.state = match target_state {
+                StateChangeRequest::NewGame => State::Gameplay(Scene::new(&mut self.textures)),
+                StateChangeRequest::LoadGame => panic!("Not yet implemented"),
+                StateChangeRequest::Quit => ::std::process::exit(0),
+                StateChangeRequest::MainMenu => State::MainMenu(Menu::new(MENU_FONT_SIZE)),
+                _ => panic!("bad state request"),
+            }
         }
     }
             
@@ -77,15 +79,12 @@ impl World {
     pub fn run(mut self) {
         use piston::event_loop::{Events, EventSettings};
         use piston::window::{WindowSettings};
-        use std::borrow::Borrow;
         use opengl_graphics::glyph_cache::GlyphCache;
-        use rusttype::FontCollection;
         
         let mut window: GlutinWindow = WindowSettings::new(
             "zeldesque",
             (STARTING_SCREEN_WIDTH as _, STARTING_SCREEN_HEIGHT as _)
         )
-            .exit_on_esc(true)
             .vsync(true)
             .resizable(false)
             .opengl(OPENGL_VERSION)
@@ -108,10 +107,6 @@ impl World {
             match event {
                 Input(input) => {
                     use piston::input::Input::*;
-                    use piston::input::ButtonArgs;
-                    use piston::input::ButtonState::*;
-                    use piston::input::Key::*;
-                    use piston::input::Button::*;
 
                     match input {
                         Button(args) => {
@@ -127,7 +122,7 @@ impl World {
                         Update(args) => self.update_state(&args),
                         Render(args) => {
                             gl.draw(args.viewport(), |ctx, gl| {
-                                use graphics::{clear, image};
+                                use graphics::clear;
                                 use world::color::*;
 
                                 clear(with_opacity(BLACK, OPAQUE), gl);

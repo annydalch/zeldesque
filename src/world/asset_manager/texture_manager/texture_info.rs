@@ -6,8 +6,6 @@ use std::rc::{Weak, Rc};
 use std::path::Path;
 use opengl_graphics::Texture;
 
-use super::TextureID;
-
 #[derive(Debug)]
 pub enum TextureStorage {
     FileStorage(&'static Path),
@@ -56,7 +54,7 @@ impl TextureInfo {
         use texture::TextureSettings;
         use self::TextureStorage::*;
         match self.storage {
-            FileStorage(p) => {
+            FileStorage(_) => {
                 panic!("I haven't implemented that yet!");
             },
             Inline(data) => {

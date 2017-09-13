@@ -11,6 +11,6 @@ mod world;
 use world::World;
 
 fn main() {
-    let mut game = World::new();
+    let game = World::new();
     game.run();
 }

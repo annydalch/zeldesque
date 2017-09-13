@@ -12,11 +12,18 @@ pub enum State {
     PreInit,
 }
 
+pub enum StateChangeRequest {
+    NewGame,
+    LoadGame,
+    Quit,
+    MainMenu,
+}
+
 pub trait Update {
     fn update(
         &mut self,
         args: &UpdateArgs,
         keyboard: &Keyboard,
         events: &mut Vec<ButtonArgs>
-    ) -> Option<State>;
+    ) -> Option<StateChangeRequest>;
 }

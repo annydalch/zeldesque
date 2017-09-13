@@ -4,10 +4,9 @@ extern crate texture;
 
 mod texture_info;
 
-use std::rc::{Weak, Rc};
+use std::rc::Rc;
 use opengl_graphics::Texture;
-use std::path::{Path};
-use self::texture_info::{TextureStorage, TextureInfo};
+use self::texture_info::TextureInfo;
 
 static BACKGROUND_SPRITE: &[u8] = include_bytes!(
     concat!(
