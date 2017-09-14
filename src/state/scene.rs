@@ -4,9 +4,9 @@ use graphics::math::Matrix2d;
 use opengl_graphics::Texture;
 use std::rc::Rc;
 
-use world::coordinates::{MapCoord, Vec2};
-use world::characters::Player;
-use world::keyboard::Keyboard;
+use coordinates::{MapCoord, Vec2};
+use characters::Player;
+use keyboard::Keyboard;
 use super::{StateChangeRequest, Update};
 
 pub struct Scene {
@@ -24,8 +24,8 @@ impl Scene {
         self.player.draw(gl, transform);
     }
 
-    pub fn new(textures: &mut ::world::asset_manager::TextureManager) -> Self {
-        use world::asset_manager::TextureID::*;
+    pub fn new(textures: &mut ::asset_manager::TextureManager) -> Self {
+        use asset_manager::TextureID::*;
         let player = Player::new(textures.get(PlayerSprite), Vec2 { x: 100.0, y: 100.0 });
 
         Scene {

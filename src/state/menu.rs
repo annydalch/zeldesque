@@ -6,7 +6,7 @@ use piston::input::Key::*;
 use piston::input::Button::*;
 use piston::input::ButtonState::*;
 
-use world::keyboard::Keyboard;
+use keyboard::Keyboard;
 use super::{StateChangeRequest, Update};
 
 const MENU_SEPERATION: f64 = 40.0;
@@ -47,7 +47,7 @@ impl Menu {
     }
 
     pub fn draw(&self, font: &mut GlyphCache, gl: &mut GlGraphics, mut transform: Matrix2d) {
-        use world::color::*;
+        use color::*;
         use graphics::text;
         use graphics::Transformed;
 

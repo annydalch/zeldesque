@@ -1,15 +1,8 @@
-mod keyboard;
-mod coordinates;
-mod color;
-mod asset_manager;
-mod state;
-mod characters;
-
-use self::state::State;
-use self::keyboard::Keyboard;
-use self::coordinates::Vec2;
-use self::asset_manager::TextureManager;
-use self::characters::Player;
+use state::State;
+use keyboard::Keyboard;
+use coordinates::Vec2;
+use asset_manager::TextureManager;
+use characters::Player;
 
 use opengl_graphics::{GlGraphics, OpenGL};
 use glutin_window::GlutinWindow;
@@ -53,10 +46,10 @@ impl World {
     }
 
     pub fn update_state(&mut self, args: &UpdateArgs) {
-        use self::state::Update;
-        use self::state::StateChangeRequest;
-        use self::state::menu::Menu;
-        use self::state::scene::Scene;
+        use state::Update;
+        use state::StateChangeRequest;
+        use state::menu::Menu;
+        use state::scene::Scene;
 
         let state_request = match self.state {
             State::Gameplay(ref mut sc) => sc.update(args, &self.keyboard, &mut self.button_events),
@@ -122,7 +115,7 @@ impl World {
                         Render(args) => {
                             gl.draw(args.viewport(), |ctx, gl| {
                                 use graphics::clear;
-                                use world::color::*;
+                                use color::*;
 
                                 clear(with_opacity(BLACK, OPAQUE), gl);
                                 match self.state {

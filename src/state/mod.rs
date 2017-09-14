@@ -3,7 +3,7 @@ pub mod menu;
 
 use self::scene::Scene;
 use self::menu::Menu;
-use world::keyboard::Keyboard;
+use keyboard::Keyboard;
 use piston::input::{ButtonArgs, UpdateArgs};
 
 pub enum State {

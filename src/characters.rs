@@ -1,10 +1,8 @@
 use std::rc::Rc;
-use world::coordinates::Vec2;
+use coordinates::Vec2;
 use opengl_graphics::Texture;
 use graphics::math::Matrix2d;
-use piston::input::UpdateArgs;
 use opengl_graphics::GlGraphics;
-use world::keyboard::Keyboard;
 
 pub struct Player {
     pub sprite: Rc<Texture>,
