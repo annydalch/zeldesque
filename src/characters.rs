@@ -28,10 +28,7 @@ impl Player {
     pub fn adjust_speed(&self) -> Vec2 {
         use std::f64::consts::SQRT_2;
         let speed: f64 = self.speed * SQRT_2 / 2.0;
-        Vec2 {
-            x: speed,
-            y: speed,
-        }
+        Vec2 { x: speed, y: speed }
     }
 
     pub fn new(sprite: Rc<Texture>, pos: Vec2) -> Self {
@@ -52,7 +49,7 @@ impl Player {
             pos,
             dimensions,
             vel: Vec2 { x: 0.0, y: 0.0 },
-            speed: 30.0
+            speed: 30.0,
         }
     }
 }

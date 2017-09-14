@@ -1,4 +1,3 @@
-
 extern crate image as im;
 extern crate opengl_graphics;
 extern crate texture;

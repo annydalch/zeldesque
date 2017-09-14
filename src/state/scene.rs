@@ -47,31 +47,36 @@ impl Scene {
         } else if (!keys.w) && keys.a && keys.s && (!keys.d) {
             // down and left
             self.player.vel = self.player.adjust_speed() * (-1.0, 1.0);
-            
         } else if (!keys.w) && (!keys.a) && keys.s && keys.d {
             // down and right
             self.player.vel = self.player.adjust_speed();
-            
         } else if keys.w && (!keys.a) && (!keys.s) && keys.d {
             // up and right
             self.player.vel = self.player.adjust_speed() * (1.0, -1.0);
-            
         } else if keys.w && (!keys.s) {
             // up
-            self.player.vel = Vec2 { x: 0.0, y: self.player.speed * -1.0 };
-            
+            self.player.vel = Vec2 {
+                x: 0.0,
+                y: self.player.speed * -1.0,
+            };
         } else if keys.a && (!keys.d) {
             // left
-            self.player.vel = Vec2 { x: self.player.speed * -1.0, y: 0.0 };
-            
+            self.player.vel = Vec2 {
+                x: self.player.speed * -1.0,
+                y: 0.0,
+            };
         } else if keys.s && (!keys.w) {
             // down
-            self.player.vel = Vec2 { x: 0.0, y: self.player.speed };
-            
+            self.player.vel = Vec2 {
+                x: 0.0,
+                y: self.player.speed,
+            };
         } else if keys.d && (!keys.a) {
             // right
-            self.player.vel = Vec2 { x: self.player.speed, y: 0.0 };
-            
+            self.player.vel = Vec2 {
+                x: self.player.speed,
+                y: 0.0,
+            };
         } else {
             // neutral
             self.player.vel = Vec2 { x: 0.0, y: 0.0 };
