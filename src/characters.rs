@@ -1,13 +1,13 @@
 use std::rc::Rc;
-use coordinates::Vec2;
+use coordinates::{Vec2, Rectangle, Collides};
 use opengl_graphics::Texture;
 use graphics::math::Matrix2d;
 use opengl_graphics::GlGraphics;
 
+#[derive(Clone)]
 pub struct Player {
     pub sprite: Rc<Texture>,
-    pub pos: Vec2,
-    pub dimensions: Vec2,
+    pub rect: Rectangle,
     pub vel: Vec2,
     pub speed: f64,
 }
@@ -19,8 +19,8 @@ impl Player {
 
         let my_trans = transform
             .clone()
-            .trans(self.pos.x, self.pos.y)
-            .trans(self.dimensions.x / -2.0, self.dimensions.y / -2.0);
+            .trans(self.rect.x, self.rect.y)
+            .trans(self.rect.width / -2.0, self.rect.height / -2.0);
 
         image(self.sprite.borrow(), my_trans, gl);
     }
@@ -35,21 +35,28 @@ impl Player {
         use texture::ImageSize;
         use std::borrow::Borrow;
 
-        let dimensions = {
+        let rect = {
             let texture: &Texture = sprite.borrow();
             let (width, height): (u32, u32) = texture.get_size();
-            Vec2 {
-                x: width as _,
-                y: height as _,
+            Rectangle {
+                width: width as _,
+                height: height as _,
+                x: pos.x,
+                y: pos.y,
             }
         };
 
         Player {
             sprite,
-            pos,
-            dimensions,
+            rect,
             vel: Vec2 { x: 0.0, y: 0.0 },
             speed: 30.0,
         }
+    }
+}
+
+impl Collides for Player {
+    fn rectangle(&self) -> Rectangle {
+        self.rect
     }
 }

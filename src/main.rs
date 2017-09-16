@@ -13,6 +13,7 @@ mod color;
 mod asset_manager;
 mod state;
 mod characters;
+mod other_entities;
 
 use world::World;
 

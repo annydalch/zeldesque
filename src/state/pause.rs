@@ -9,57 +9,65 @@ use piston::input::ButtonState::*;
 use keyboard::Keyboard;
 use super::{StateChangeRequest, Update};
 
-const MENU_SEPERATION: f64 = 40.0;
 const MENU_MARGINS: (f64, f64) = (100.0, 100.0);
+const MENU_SEPERATION: f64 = 50.0;
+const PAUSE_MENU_OPACITY: f32 = 0.5;
+const MENU_DIMENSIONS: (f64, f64) = (300.0, 300.0);
 
-#[derive(Copy, Clone, Debug)]
-pub enum MenuEntry {
-    NewGame,
-    LoadGame,
-    Quit,
+#[derive(Debug, Copy, Clone)]
+pub enum PauseMenuEntry {
+    Resume,
+    QuitToMainMenu,
+    Save,
 }
 
 #[derive(Clone)]
-pub struct Menu {
-    entries: Vec<MenuEntry>,
+pub struct PauseMenu {
+    entries: Vec<PauseMenuEntry>,
     pos: usize,
-    size: u32,
+    font_size: u32,
 }
 
-fn get_text_from_menu_entry(entry: &MenuEntry) -> &str {
-    use self::MenuEntry::*;
+fn get_text_from_menu_entry(entry: &PauseMenuEntry) -> &str {
+    use self::PauseMenuEntry::*;
     match *entry {
-        NewGame => "New Game",
-        LoadGame => "Load Game",
-        Quit => "Quit",
+        Resume => "Resume",
+        QuitToMainMenu => "Quit to Main Menu",
+        Save => "Save Game",
         _ => panic!("Bad menu entry!"),
     }
 }
 
-impl Menu {
-    pub fn new(size: u32) -> Self {
-        use self::MenuEntry::*;
+impl PauseMenu {
+    pub fn new(font_size: u32) -> Self {
+        use self::PauseMenuEntry::*;
 
-        Menu {
-            entries: vec![NewGame, LoadGame, Quit],
+        Self {
+            entries: vec![Resume, Save, QuitToMainMenu],
             pos: 0,
-            size,
+            font_size,
         }
     }
 
     pub fn draw(&self, font: &mut GlyphCache, gl: &mut GlGraphics, mut transform: Matrix2d) {
         use color::*;
-        use graphics::text;
+        use graphics::{text, rectangle};
         use graphics::Transformed;
 
         transform = transform.trans(MENU_MARGINS.0, MENU_MARGINS.1);
+        rectangle(
+            with_opacity(BLACK, PAUSE_MENU_OPACITY),
+            [0.0, 0.0, MENU_DIMENSIONS.0, MENU_DIMENSIONS.1],
+            transform,
+            gl
+        );
 
         for (ct, entry) in self.entries.iter().enumerate() {
             transform = transform.trans(0.0, MENU_SEPERATION);
             if ct == self.pos {
                 text(
                     with_opacity(WHITE, OPAQUE),
-                    self.size,
+                    self.font_size,
                     get_text_from_menu_entry(entry),
                     font,
                     transform,
@@ -68,11 +76,11 @@ impl Menu {
             } else {
                 text(
                     with_opacity(BLUE, OPAQUE),
-                    self.size,
+                    self.font_size,
                     get_text_from_menu_entry(entry),
                     font,
                     transform,
-                    gl,
+                    gl
                 );
             }
         }
@@ -80,13 +88,13 @@ impl Menu {
 
     fn activate_menu_option(&self) -> StateChangeRequest {
         let selected_option = self.entries[self.pos];
-        use self::MenuEntry::*;
+        use self::PauseMenuEntry::*;
 
         match selected_option {
-            NewGame => StateChangeRequest::NewGame,
-            LoadGame => StateChangeRequest::LoadGame,
-            Quit => StateChangeRequest::Quit,
-            _ => panic!("invalid menu option"),
+            Resume => StateChangeRequest::Continue,
+            QuitToMainMenu => StateChangeRequest::MainMenu,
+            Save => StateChangeRequest::SaveGame,
+            _ => panic!("Bad menu entry!"),
         }
     }
 
@@ -114,7 +122,7 @@ impl Menu {
     }
 }
 
-impl Update for Menu {
+impl Update for PauseMenu {
     fn update(
         &mut self,
         _: &UpdateArgs,

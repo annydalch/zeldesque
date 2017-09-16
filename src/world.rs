@@ -49,23 +49,42 @@ impl World {
         use state::Update;
         use state::StateChangeRequest;
         use state::menu::Menu;
+        use state::pause::PauseMenu;
         use state::scene::Scene;
 
         let state_request = match self.state {
             State::Gameplay(ref mut sc) => sc.update(args, &self.keyboard, &mut self.button_events),
             State::MainMenu(ref mut menu) => {
                 menu.update(args, &self.keyboard, &mut self.button_events)
-            }
+            },
+            State::Pause(ref mut menu, _) => {
+                menu.update(args, &self.keyboard, &mut self.button_events)
+            },
             State::PreInit => Some(StateChangeRequest::MainMenu),
             _ => panic!("Bad state!"),
         };
 
         if let Some(target_state) = state_request {
+            let old_state = self.state.clone();
             self.state = match target_state {
                 StateChangeRequest::NewGame => State::Gameplay(Scene::new(&mut self.textures)),
                 StateChangeRequest::LoadGame => panic!("Not yet implemented"),
                 StateChangeRequest::Quit => ::std::process::exit(0),
                 StateChangeRequest::MainMenu => State::MainMenu(Menu::new(MENU_FONT_SIZE)),
+                StateChangeRequest::Pause => {
+                    if let State::Gameplay(sc) = old_state {
+                        State::Pause(PauseMenu::new(MENU_FONT_SIZE), sc)
+                    } else {
+                        panic!("Tried to pause from a state other than gameplay")
+                    }
+                },
+                StateChangeRequest::Continue => {
+                    if let State::Pause(_, sc) = old_state {
+                        State::Gameplay(sc)
+                    } else {
+                        panic!("Tried to continue from state other than pause")
+                    }
+                },
                 _ => panic!("bad state request"),
             }
         }
@@ -122,7 +141,11 @@ impl World {
                                     State::Gameplay(ref mut sc) => sc.draw(gl, ctx.transform),
                                     State::MainMenu(ref mut menu) => {
                                         menu.draw(&mut menu_font, gl, ctx.transform)
-                                    }
+                                    },
+                                    State::Pause(ref mut menu, ref mut sc) => {
+                                        sc.draw(gl, ctx.transform);
+                                        menu.draw(&mut menu_font, gl, ctx.transform);
+                                    },
                                     _ => (),
                                 }
                             });

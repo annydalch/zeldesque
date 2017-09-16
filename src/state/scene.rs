@@ -9,6 +9,7 @@ use characters::Player;
 use keyboard::Keyboard;
 use super::{StateChangeRequest, Update};
 
+#[derive(Clone)]
 pub struct Scene {
     pub background: Rc<Texture>,
     pub pos: MapCoord,
@@ -37,7 +38,8 @@ impl Scene {
 
     fn move_player(&mut self, dt: f64) {
         let player = &mut self.player;
-        player.pos += player.vel * dt;
+        player.rect.x += player.vel.x * dt;
+        player.rect.y += player.vel.y * dt;
     }
 
     fn adjust_player_vel(&mut self, keys: &Keyboard) {
@@ -100,7 +102,7 @@ impl Update for Scene {
                 ..
             } = event
             {
-                return Some(StateChangeRequest::MainMenu);
+                return Some(StateChangeRequest::Pause);
             }
         }
         self.adjust_player_vel(keyboard);

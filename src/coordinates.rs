@@ -53,6 +53,7 @@ impl AddAssign<Self> for Vec2 {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
 pub struct MapCoord {
     pub x: usize,
     pub y: usize,
@@ -74,3 +75,43 @@ impl AddAssign<Self> for MapCoord {
         self.y += rhs.y;
     }
 }
+
+#[derive(Copy, Clone, Debug)]
+pub struct Rectangle {
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+}
+
+impl Rectangle {
+    pub fn get_pos(&self) -> Vec2 {
+        Vec2 {
+            x: self.x,
+            y: self.y,
+        }
+    }
+    pub fn get_dimensions(&self) -> Vec2 {
+        Vec2 {
+            x: self.width,
+            y: self.height,
+        }
+    }
+    pub fn check_collision(a: Self, b: Self) -> bool {
+        !(
+            (a.x > (b.x + b.width)) ||
+                ((a.x + a.width) < b.x) ||
+                (a.y > (b.y + b.height)) ||
+                ((a.y + a.height) < b.y)
+        )
+    }
+}
+
+pub trait Collides {
+    fn rectangle(&self) -> Rectangle;
+
+    fn collides_with<T: Collides>(&self, other: T) -> bool {
+        Rectangle::check_collision(self.rectangle(), other.rectangle())
+    }
+}
+
